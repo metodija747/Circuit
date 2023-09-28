@@ -4,8 +4,98 @@ Description: >
   Sample SAM Template for circuit breaker pattern
 
 Resources:
+  ApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      DefinitionBody:
+        swagger: "2.0"
+        paths:
+          /catalog:
+            get:
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:states:action/StartExecution
+                responses: { }
+                httpMethod: POST
+                type: aws
+                credentials: !GetAtt ApiGatewayRole.Arn
+                requestTemplates:
+                  application/json: |
+                    {
+                      "stateMachineArn": "${CircuitBreakerStateMachine}",
+                      "input": "{ \"TargetLambda\": \"${GetAndSearchProductsFunction}\" }"
+                    }
+  ApiGatewayRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - apigateway.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: ApiGatewayAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - states:StartExecution
+                Resource: "*"
+
+
+  SharedLibrariesLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: SharedLibrariesLayer
+      Description: Layer for shared libraries
+      ContentUri: ServerlessFunction/src/main/java/lib/
+      CompatibleRuntimes:
+        - java11
+      RetentionPolicy: Retain
+
+  GetAndSearchProductsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ServerlessFunction
+      Handler: serverless.CatalogProduct.GetAndSearchProducts::handleRequest
+      Runtime: java11
+      MemorySize: 512
+      Tracing: Active
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+              Resource:
+                - arn:aws:ssm:us-east-1:824949725598:parameter/USER_POOL_ID
+                - arn:aws:ssm:us-east-1:824949725598:parameter/CLIENT_APP_ID
+                - arn:aws:ssm:us-east-1:824949725598:parameter/DYNAMO_REGION
+            - Effect: Allow
+              Action:
+                - cloudwatch:PutMetricData
+              Resource: "*"
+            - Effect: Allow
+              Action:
+                - xray:PutTraceSegments
+                - xray:PutTelemetryRecords
+              Resource: "*"
+      Environment:
+        Variables:
+          JAVA_TOOL_OPTIONS: -XX:+TieredCompilation -XX:TieredStopAtLevel=1
+      Layers:
+        - !Ref SharedLibrariesLayer
+
+
   CircuitBreakerStateMachine:
-    Type: AWS::Serverless::StateMachine # More info about State Machine Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-statemachine.html
+    Type: AWS::Serverless::StateMachine
     Properties:
       DefinitionUri: statemachine/circuitbreaker.asl.json
       DefinitionSubstitutions:
@@ -13,7 +103,7 @@ Resources:
         UpdateCircuitStatusFunctionArn: !GetAtt UpdateCircuitStatusFunction.Arn
         DDBPutItem: !Sub arn:${AWS::Partition}:states:::dynamodb:putItem
         DDBTable: !Ref CircuitBreakerTable
-      Policies: # Find out more about SAM policy templates: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-templates.html
+      Policies:
         - AWSLambdaRole
         - DynamoDBWritePolicy:
             TableName: !Ref CircuitBreakerTable
@@ -48,7 +138,7 @@ Resources:
         - AWSStepFunctionsFullAccess      
 
   TestCircuitBreakerFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function
     Properties:
       CodeUri: ./TestCircuitBreaker/src/TestCircuitBreaker/
       Handler: TestCircuitBreaker::TestCircuitBreaker.Function::FunctionHandler
@@ -61,19 +151,7 @@ Resources:
         - AWSXrayFullAccess
         - AWSStepFunctionsFullAccess
   
-  HelloWorldFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
-    Properties:
-      CodeUri: ./HelloWorld/src/HelloWorld/
-      Handler: HelloWorld::HelloWorld.Function::FunctionHandler
-      Runtime: dotnet6
-      MemorySize: 256
-      Timeout: 30
-      Policies:
-        - AmazonDynamoDBFullAccess
-        - CloudWatchLogsFullAccess
-        - AWSXrayFullAccess
-        - AWSStepFunctionsFullAccess
+
 
 
   CircuitBreakerTable:

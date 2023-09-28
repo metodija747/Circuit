@@ -1,0 +1,847 @@
+---
+swagger: "2.0"
+info:
+  version: 1.0.0
+  title: "LesaLjubljanaServerless"
+host: "5mtylqf88k.execute-api.us-east-1.amazonaws.com"
+basePath: "/Stage"
+schemes:
+  - "https"
+securityDefinitions:
+  JWT:
+    type: "apiKey"
+    name: "Authorization"
+    in: "header"
+    description: "For accessing the API, a JWT token is required in the Authorization header."
+paths:
+  /sign-up:
+    post:
+      summary: "User Registration"
+      description: "Register a new user account."
+      tags:
+        - 'Authentication'
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "body"
+          in: "body"
+          description: "User registration details."
+          required: true
+          schema:
+            type: "object"
+            properties:
+              email:
+                type: "string"
+                description: "User email address."
+              password:
+                type: "string"
+                description: "User password."
+      responses:
+        "200":
+          description: "User successfully registered."
+          schema:
+            type: "object"
+            properties:
+              body:
+                type: "string"
+        "403":
+          description: "Forbidden. User already exists."
+        "500":
+          description: "Internal server error."
+  /sign-in:
+    post:
+      summary: "User Sign-In"
+      description: "Sign in an existing user account."
+      tags:
+        - 'Authentication'
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "body"
+          in: "body"
+          description: "User sign-in details."
+          required: true
+          schema:
+            type: "object"
+            properties:
+              email:
+                type: "string"
+                description: "User email address."
+              password:
+                type: "string"
+                description: "User password."
+      responses:
+        "200":
+          description: "User successfully signed in."
+          schema:
+            type: "object"
+            properties:
+              accessToken:
+                type: "string"
+              idToken:
+                type: "string"
+              refreshToken:
+                type: "string"
+              isAdmin:
+                type: "boolean"
+        "403":
+          description: "Forbidden. Invalid credentials."
+        "500":
+          description: "Internal server error."
+
+  /users/{email}:
+    delete:
+      summary: "Delete User Account"
+      description: "Delete an existing user account."
+      tags:
+        - 'Authentication'
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      security:
+        - JWT: []
+      parameters:
+        - name: "email"
+          in: "path"
+          description: "Email address of the user to be deleted."
+          required: true
+          type: "string"
+      responses:
+        "200":
+          description: "User successfully deleted."
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+        "400":
+          description: "Bad request. User does not exist."
+        "403":
+          description: "Forbidden. Not authorized to delete this user."
+        "500":
+          description: "Internal server error."
+  /forgot-password:
+    post:
+      summary: 'Initiate password reset and send confirmation code to email.'
+      description: 'This endpoint allows users to initiate the forgot password process. A confirmation code will be sent to the provided email.'
+      tags:
+        - 'Authentication'
+      parameters:
+        - name: 'body'
+          in: 'body'
+          description: 'Email of the user who wants to reset the password.'
+          required: true
+          schema:
+            type: 'object'
+            properties:
+              email:
+                type: 'string'
+                example: 'user@example.com'
+      responses:
+        '200':
+          description: 'Confirmation code sent successfully.'
+          schema:
+            type: 'object'
+            properties:
+              message:
+                type: 'string'
+                example: 'Confirmation code sent to your email!'
+        '404':
+          description: 'User with given email address does not exist.'
+          schema:
+            type: 'object'
+            properties:
+              message:
+                type: 'string'
+                example: 'User with given email address does not exist.'
+        '500':
+          description: 'Internal Server Error.'
+          schema:
+            type: 'object'
+            properties:
+              description:
+                type: 'string'
+                example: 'Unable to send confirmation code at the moment. Please try again later.'
+
+  /confirm-forgot-password:
+    post:
+      summary: 'Confirm password reset using a confirmation code.'
+      description: 'This endpoint allows users to confirm their password reset. A confirmation code should be sent to the provided email before using this function. The user should use the received confirmation code along with the new password to complete the password reset process.'
+      tags:
+        - 'Authentication'
+      parameters:
+        - name: 'body'
+          in: 'body'
+          description: 'Email, confirmation code, and new password of the user who wants to reset the password.'
+          required: true
+          schema:
+            type: 'object'
+            properties:
+              email:
+                type: 'string'
+                example: 'user@example.com'
+              confirmationCode:
+                type: 'string'
+                example: '123456'
+              newPassword:
+                type: 'string'
+                example: 'NewPassword123!'
+      responses:
+        '200':
+          description: 'Password changed successfully.'
+          schema:
+            type: 'object'
+            properties:
+              message:
+                type: 'string'
+                example: 'Password changed successfully'
+        '500':
+          description: 'Internal Server Error.'
+          schema:
+            type: 'object'
+            properties:
+              description:
+                type: 'string'
+                example: 'Unable to change password at the moment. Please try again later.'
+
+  /comments:
+    post:
+      summary: 'Add a comment and rating to a product.'
+      description: 'This endpoint allows users to add comments and ratings to a specific product in the catalog. Users must be authenticated to perform this action.'
+      tags:
+        - 'Product comments'
+      security:
+        - JWT: []
+      parameters:
+        - name: 'body'
+          in: 'body'
+          description: 'Product ID, comment, and rating to be added.'
+          required: true
+          schema:
+            type: 'object'
+            properties:
+              productId:
+                type: 'string'
+                example: 'a9abe32e-9bd6-43aa-bc00-9044a27b858b'
+              comment:
+                type: 'string'
+                example: 'Great product!'
+              rating:
+                type: 'integer'
+                example: 5
+      responses:
+        '200':
+          description: 'Comment and rating added successfully.'
+          schema:
+            type: 'object'
+            properties:
+              message:
+                type: 'string'
+                example: 'Comment and rating added successfully.'
+              averageRating:
+                type: 'number'
+                example: 4.5
+        '500':
+          description: 'Internal Server Error.'
+          schema:
+            type: 'object'
+            properties:
+              description:
+                type: 'string'
+                example: 'Unable to add comment and rating at the moment. Please try again later.'
+
+  /catalog:
+    post:
+      summary: "Add a New Product"
+      description: "This endpoint allows admin users to add a new product to the catalog."
+      security:
+        - JWT: []
+      tags:
+        - 'Product catalog'
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "Product object that needs to be added to the catalog"
+          required: true
+          schema:
+            type: "object"
+            properties:
+              productName:
+                type: "string"
+              categoryName:
+                type: "string"
+              imageURL:
+                type: "string"
+              price:
+                type: "number"
+                format: "double"
+              productId:
+                type: "string"
+              description:
+                type: "string"
+              beautifulComment:
+                type: "string"
+              commentsCount:
+                type: "integer"
+                format: "int32"
+              discountPrice:
+                type: "number"
+                format: "double"
+      responses:
+        '200':
+          description: "Product successfully added."
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Product added successfully."
+        '401':
+          description: "Invalid token."
+          schema:
+            type: "object"
+            properties:
+              description:
+                type: "string"
+                example: "Invalid token."
+        '403':
+          description: "Unauthorized: only admin users can add new products."
+          schema:
+            type: "object"
+            properties:
+              description:
+                type: "string"
+                example: "Unauthorized: only admin users can add new products."
+        '500':
+          description: "Internal Server Error."
+          schema:
+            type: "object"
+            properties:
+              description:
+                type: "string"
+                example: "Unable to add new product at the moment. Please try again later."
+    get:
+      summary: "Get and Search Products"
+      description: "This endpoint allows users to search for products in the catalog. It supports pagination, sorting, and filtering."
+      tags:
+        - 'Product catalog'
+      parameters:
+        - in: "query"
+          name: "searchTerm"
+          description: "The search term to filter products by name."
+          type: "string"
+          required: false
+        - in: "query"
+          name: "sortBy"
+          description: "The field by which to sort the products. Options are 'AverageRating' and 'Price'."
+          type: "string"
+          required: false
+        - in: "query"
+          name: "sortOrder"
+          description: "The sort order. Use 'ASC' for ascending and 'DSC' for descending."
+          type: "string"
+          required: false
+        - in: "query"
+          name: "category"
+          description: "The category to filter products."
+          type: "string"
+          required: false
+        - in: "query"
+          name: "page"
+          description: "The page number for pagination."
+          type: "integer"
+          required: false
+        - in: "query"
+          name: "pageSize"
+          description: "The number of products per page."
+          type: "integer"
+          required: false
+      responses:
+        '200':
+          description: "Successfully obtained product list."
+          schema:
+            type: "object"
+            properties:
+              products:
+                type: "array"
+                items:
+                  type: "object"
+              totalPages:
+                type: "integer"
+              totalProducts:
+                type: "integer"
+              currentRangeStart:
+                type: "integer"
+              currentRangeEnd:
+                type: "integer"
+        '500':
+          description: "Internal Server Error."
+          schema:
+            type: "object"
+            properties:
+              description:
+                type: "string"
+                example: "Unable to get product list at the moment. Please try again later."
+  /catalog/{productId}:
+    get:
+      summary: "Get Product Details"
+      description: "This endpoint allows users to get details of a specific product in the catalog by its productId."
+      tags:
+        - 'Product catalog'
+      parameters:
+        - in: "path"
+          name: "productId"
+          description: "The unique identifier of the product."
+          type: "string"
+          required: true
+      responses:
+        '200':
+          description: "Successfully obtained product details."
+          schema:
+            type: "object"
+            properties:
+              productId:
+                type: "string"
+              productName:
+                type: "string"
+              categoryName:
+                type: "string"
+              imageURL:
+                type: "string"
+              price:
+                type: "number"
+              description:
+                type: "string"
+              beautifulComment:
+                type: "string"
+              commentsCount:
+                type: "integer"
+              discountPrice:
+                type: "number"
+              AverageRating:
+                type: "number"
+        '500':
+          description: "Internal Server Error."
+          schema:
+            type: "object"
+            properties:
+              description:
+                type: "string"
+    delete:
+      summary: "Delete Product from Catalog"
+      description: "This endpoint allows admin users to delete a product from the catalog."
+      security:
+        - JWT: []
+      tags:
+        - 'Product catalog'
+      parameters:
+        - in: "path"
+          name: "productId"
+          description: "Product ID to be deleted"
+          required: true
+          type: "string"
+      responses:
+        '200':
+          description: "Product successfully deleted."
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+        '401':
+          description: "Unauthorized. Only admin users can delete products."
+          schema:
+            type: "object"
+            properties:
+              description:
+                type: "string"
+        '403':
+          description: "Forbidden. Invalid token."
+          schema:
+            type: "object"
+            properties:
+              description:
+                type: "string"
+        '404':
+          description: "Not Found. Product does not exist in the database."
+          schema:
+            type: "object"
+            properties:
+              description:
+                type: "string"
+        '500':
+          description: "Internal Server Error."
+          schema:
+            type: "object"
+            properties:
+              description:
+                type: "string"
+  /comments/{productId}:
+    get:
+      summary: "Get Product Comments"
+      description: "This endpoint allows users to get comments of a specific product in the catalog by its productId. It supports pagination."
+      tags:
+        - 'Product comments'
+      parameters:
+        - in: "path"
+          name: "productId"
+          description: "The unique identifier of the product."
+          type: "string"
+          required: true
+        - in: "query"
+          name: "page"
+          description: "The page number."
+          type: "integer"
+          required: true
+        - in: "query"
+          name: "pageSize"
+          description: "The number of comments per page."
+          type: "integer"
+          required: true
+      responses:
+        '200':
+          description: "Successfully obtained product comments."
+          schema:
+            type: "object"
+            properties:
+              comments:
+                type: "array"
+                items:
+                  type: "object"
+                  properties:
+                    commentId:
+                      type: "string"
+                    text:
+                      type: "string"
+                    rating:
+                      type: "integer"
+              totalPages:
+                type: "integer"
+              totalComments:
+                type: "integer"
+              ratingCounts:
+                type: "object"
+        '500':
+          description: "Internal Server Error."
+          schema:
+            type: "object"
+            properties:
+              description:
+                type: "string"
+
+    delete:
+      summary: "Delete Comment and Rating"
+      description: "This endpoint allows users to delete comments and ratings for a specific product."
+      tags:
+        - 'Product comments'
+      security:
+        - JWT: []
+      parameters:
+        - in: "path"
+          name: "productId"
+          description: "Product ID for which the comment and rating are to be deleted"
+          required: true
+          type: "string"
+      responses:
+        '200':
+          description: "Comment and rating successfully deleted."
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+              averageRating:
+                type: "number"
+        '401':
+          description: "Unauthorized. Invalid token."
+          schema:
+            type: "object"
+            properties:
+              description:
+                type: "string"
+        '404':
+          description: "Comment not found."
+          schema:
+            type: "object"
+            properties:
+              description:
+                type: "string"
+        '500':
+          description: "Internal Server Error."
+          schema:
+            type: "object"
+            properties:
+              description:
+                type: "string"
+
+  /getOrders:
+    get:
+      summary: "Get User Orders"
+      description: "This endpoint allows authenticated users to get their orders. It supports pagination."
+      security:
+        - JWT: []
+      tags:
+        - 'User cart'
+      parameters:
+        - in: "query"
+          name: "page"
+          description: "The page number."
+          type: "integer"
+          required: true
+        - in: "query"
+          name: "pageSize"
+          description: "The number of orders per page."
+          type: "integer"
+          required: true
+      responses:
+        '200':
+          description: "Successfully obtained user's orders."
+          schema:
+            type: "object"
+            properties:
+              orders:
+                type: "array"
+                items:
+                  type: "object"
+                  properties:
+                    Name:
+                      type: "string"
+                    Surname:
+                      type: "string"
+                    TimeStamp:
+                      type: "string"
+                    TotalPrice:
+                      type: "number"
+                    OrderStatus:
+                      type: "string"
+              OrderList:
+                type: "array"
+                items:
+                  type: "object"
+                  properties:
+                    ProductId:
+                      type: "string"
+                    ProductName:
+                      type: "string"
+                    Quantity:
+                      type: "integer"
+                    Price:
+                      type: "number"
+                    Email:
+                      type: "string"
+                    Address:
+                      type: "string"
+                    TelNumber:
+                      type: "string"
+              totalPages:
+                type: "integer"
+        '403':
+          description: "Invalid token."
+          schema:
+            type: "object"
+            properties:
+              description:
+                type: "string"
+        '500':
+          description: "Internal Server Error."
+          schema:
+            type: "object"
+            properties:
+              description:
+                type: "string"
+  /cart:
+    get:
+      summary: "Get User Cart"
+      description: "This endpoint allows users to get their cart items. It supports pagination."
+      security:
+        - JWT: []
+      tags:
+        - 'User cart'
+      parameters:
+        - in: "query"
+          name: "page"
+          description: "Page number for pagination"
+          required: true
+          type: "integer"
+      responses:
+        '200':
+          description: "Successfully obtained user's cart."
+          schema:
+            type: "object"
+            properties:
+              products:
+                type: "array"
+                items:
+                  type: "object"
+                  properties:
+                    ProductId:
+                      type: "string"
+                    ProductName:
+                      type: "string"
+                    Quantity:
+                      type: "integer"
+                    Price:
+                      type: "number"
+              totalPages:
+                type: "integer"
+              totalPrice:
+                type: "number"
+        '403':
+          description: "Invalid token."
+          schema:
+            type: "object"
+            properties:
+              description:
+                type: "string"
+        '500':
+          description: "Internal Server Error."
+          schema:
+            type: "object"
+            properties:
+              description:
+                type: "string"
+
+    post:
+      summary: "Add Item to Cart"
+      description: "This endpoint allows users to add items to their cart."
+      security:
+        - JWT: []
+      tags:
+        - 'User cart'
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "Product details to add to cart"
+          required: true
+          schema:
+            type: "object"
+            properties:
+              productId:
+                type: "string"
+              quantity:
+                type: "string"
+      responses:
+        '200':
+          description: "Item successfully added to cart."
+          schema:
+            type: "object"
+            properties:
+              description:
+                type: "string"
+        '403':
+          description: "Invalid token."
+          schema:
+            type: "object"
+            properties:
+              description:
+                type: "string"
+        '500':
+          description: "Internal Server Error."
+          schema:
+            type: "object"
+            properties:
+              description:
+                type: "string"
+  /cart/{productId}:
+    delete:
+      summary: "Delete Item from Cart"
+      description: "This endpoint allows users to delete items from their cart."
+      security:
+        - JWT: []
+      tags:
+        - 'User cart'
+      parameters:
+        - in: "path"
+          name: "productId"
+          description: "Product ID to delete from cart"
+          required: true
+          type: "string"
+      responses:
+        '200':
+          description: "Item successfully deleted from cart."
+          schema:
+            type: "object"
+            properties:
+              TotalPrice:
+                type: "number"
+              message:
+                type: "string"
+        '403':
+          description: "Invalid token."
+          schema:
+            type: "object"
+            properties:
+              description:
+                type: "string"
+        '404':
+          description: "Product not found."
+          schema:
+            type: "object"
+            properties:
+              description:
+                type: "string"
+        '500':
+          description: "Internal Server Error."
+          schema:
+            type: "object"
+            properties:
+              description:
+                type: "string"
+
+  /checkout:
+    post:
+      summary: "Process Checkout"
+      description: "This endpoint allows users to process the checkout for their cart."
+      security:
+        - JWT: []
+      tags:
+        - 'User cart'
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "Checkout details"
+          required: true
+          schema:
+            type: "object"
+            properties:
+              email:
+                type: "string"
+              name:
+                type: "string"
+              surname:
+                type: "string"
+              address:
+                type: "string"
+              telNumber:
+                type: "string"
+              orderList:
+                type: "string"
+              totalPrice:
+                type: "string"
+      responses:
+        '200':
+          description: "Payment successful."
+          schema:
+            type: "object"
+            properties:
+              description:
+                type: "string"
+        '403':
+          description: "Invalid token."
+          schema:
+            type: "object"
+            properties:
+              description:
+                type: "string"
+        '500':
+          description: "Internal Server Error."
+          schema:
+            type: "object"
+            properties:
+              description:
+                type: "string"
