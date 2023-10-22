@@ -13,19 +13,33 @@ Resources:
         paths:
           /catalog:
             get:
+              responses:
+                '200':
+                  description: successful operation
+                  headers:
+                    Access-Control-Allow-Origin:
+                      type: string
+                    Access-Control-Allow-Methods:
+                      type: string
+                    Access-Control-Allow-Headers:
+                      type: string
               x-amazon-apigateway-integration:
                 uri:
                   Fn::Sub: arn:aws:apigateway:${AWS::Region}:states:action/StartExecution
-                responses: { }
                 httpMethod: POST
                 type: aws
                 credentials: !GetAtt ApiGatewayRole.Arn
                 requestTemplates:
                   application/json: |
                     {
-                      "stateMachineArn": "${CircuitBreakerStateMachine}",
-                      "input": "{ \"TargetLambda\": \"${GetAndSearchProductsFunction}\" }"
+                      "stateMachineArn": "arn:aws:states:us-east-1:824949725598:stateMachine:CircuitBreakerStateMachine-J8DXVROnrcR1",
+                      "input": "{ \"TargetLambda\": \"arn:aws:lambda:us-east-1:824949725598:function:LesaLjubljanaServerless-GetAndSearchProductsFuncti-Yvvh4M4ci1FV\", \"queryStringParameters\": $input.json('$params.querystring') }"
                     }
+                responseTemplates:
+                  application/json: |
+                    #set($inputRoot = $input.json('$.Payload.body'))
+                    $inputRoot
+
   ApiGatewayRole:
     Type: AWS::IAM::Role
     Properties:
