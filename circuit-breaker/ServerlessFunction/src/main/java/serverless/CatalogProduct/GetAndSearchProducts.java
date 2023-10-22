@@ -39,7 +39,7 @@ public class GetAndSearchProducts implements RequestHandler<Map<String, Object>,
             if (event.containsKey("queryStringParameters") && event.get("queryStringParameters") != null) {
                 queryStringParameters = (Map<String, Object>) event.get("queryStringParameters");
             }
-            // Extract the search term, sorting option, and category from the query string parameters
+            // Extrac t the search term, sorting option, and category from the query string parameters
             // If no value is provided, default to an empty string or null
             String searchTerm = queryStringParameters.getOrDefault("searchTerm", "").toString().toLowerCase();
             String sortBy = queryStringParameters.getOrDefault("sortBy", "").toString();
