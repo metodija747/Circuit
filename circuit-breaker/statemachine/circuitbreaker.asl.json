@@ -36,7 +36,10 @@
       "Type": "Task",
       "Resource": "arn:aws:states:::lambda:invoke",
       "Parameters": {
-        "FunctionName.$": "$.TargetLambda"
+        "FunctionName.$": "$.TargetLambda",
+        "Payload": {
+          "queryStringParameters.$": "$.queryStringParameters"
+        }
       },
       "Comment": "Task to execute lambda. This will set circuit status to OPEN if the execution fails for three times or the task times out",
       "TimeoutSeconds": 12,
