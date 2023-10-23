@@ -5,7 +5,10 @@
       "Next": "Is Circuit Closed",
       "Type": "Task",
       "Comment": "Get Circuit Status",
-      "Resource": "${GetCircuitStatusFunctionArn}"
+      "Resource": "${GetCircuitStatusFunctionArn}",
+      "Parameters": {
+        "queryStringParameters.$": "$.queryStringParameters"
+      }
     },
     "Is Circuit Closed": {
       "Type": "Choice",
@@ -23,13 +26,19 @@
       ]
     },
     "Circuit Open": {
-      "Type": "Fail"
+      "Type": "Fail",
+      "Parameters": {
+        "queryStringParameters.$": "$.queryStringParameters"
+      }
     },
     "Update Circuit Status": {
       "Next": "Circuit Open",
       "Type": "Task",
       "Comment": "Update Circuit Status",
-      "Resource": "${UpdateCircuitStatusFunctionArn}"
+      "Resource": "${UpdateCircuitStatusFunctionArn}",
+      "Parameters": {
+        "queryStringParameters.$": "$.queryStringParameters"
+      }
     },
     "Execute Lambda": {
       "Next": "Circuit Closed",
