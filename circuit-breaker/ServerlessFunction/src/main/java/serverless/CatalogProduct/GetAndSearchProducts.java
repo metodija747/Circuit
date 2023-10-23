@@ -41,7 +41,7 @@ public class GetAndSearchProducts implements RequestHandler<Map<String, Object>,
             }
             Logger.getLogger(GetAndSearchProducts.class.getName()).info("" + queryStringParameters);
 
-            // Extract the search term, sorting option, and category from the query string parameters
+            // Ext ract the search term, sorting option, and category from the query string parameters
             // If no value is provided, default to an empty string or null
             String searchTerm = queryStringParameters.getOrDefault("searchTerm", "").toString().toLowerCase();
             String sortBy = queryStringParameters.getOrDefault("sortBy", "").toString();
