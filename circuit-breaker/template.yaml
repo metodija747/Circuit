@@ -37,11 +37,7 @@ Resources:
                     }
                 responseTemplates:
                   application/json: |
-                    #set($inputRoot = $input.json('$.output.Payload'))
-                    {
-                      "statusCode": $inputRoot.statusCode,
-                      "body": $inputRoot.body
-                    }
+                    $input.json('$')
 
 
   ApiGatewayRole:
