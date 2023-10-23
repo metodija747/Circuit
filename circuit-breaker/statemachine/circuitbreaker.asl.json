@@ -26,10 +26,7 @@
       ]
     },
     "Circuit Open": {
-      "Type": "Fail",
-      "Parameters": {
-        "queryStringParameters.$": "$.queryStringParameters"
-      }
+      "Type": "Fail"
     },
     "Update Circuit Status": {
       "Next": "Circuit Open",
