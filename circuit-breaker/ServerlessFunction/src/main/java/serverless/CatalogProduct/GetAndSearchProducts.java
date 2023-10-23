@@ -61,7 +61,7 @@ public class GetAndSearchProducts implements RequestHandler<Map<String, Object>,
             queryParams.put("pageSize", pageSize);
             queryParams.forEach((key, value) -> filteringSortingSubsegment.putMetadata(key, value));
             ScanRequest.Builder scanRequestBuilder = ScanRequest.builder().tableName(PRODUCT_TABLE);
-            // Initialize the filter expression and attribute values
+            // Initi alize the filter expression and attribute values
             String filterExpression = "";
             Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
             // Capitalize first letter of each word in searchTerm
