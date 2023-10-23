@@ -33,7 +33,7 @@ Resources:
                   application/json: |
                     {
                       "stateMachineArn": "arn:aws:states:us-east-1:824949725598:stateMachine:CircuitBreakerStateMachine-J8DXVROnrcR1",
-                      "input": "{ \"TargetLambda\": \"arn:aws:lambda:us-east-1:824949725598:function:LesaLjubljanaServerless-GetAndSearchProductsFuncti-Yvvh4M4ci1FV\", \"queryParams\": { \"path\": {}, \"querystring\": {}, \"header\": {}} }"
+                      "input": "{\"TargetLambda\": \"arn:aws:lambda:us-east-1:824949725598:function:LesaLjubljanaServerless-GetAndSearchProductsFuncti-Yvvh4M4ci1FV\", \"queryParams\": {\"searchTerm\": \"$input.params('searchTerm')\", \"sortBy\": \"$input.params('sortBy')\", \"sortOrder\": \"$input.params('sortOrder')\", \"category\": \"$input.params('category')\", \"page\": \"$input.params('page')\", \"pageSize\": \"$input.params('pageSize')\"}}"
                     }
                 responseTemplates:
                   application/json: |
