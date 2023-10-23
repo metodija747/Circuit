@@ -27,7 +27,7 @@ Resources:
                 uri:
                   Fn::Sub: arn:aws:apigateway:${AWS::Region}:states:action/StartExecution
                 httpMethod: POST
-                type: aws_proxy
+                type: aws
                 credentials: !GetAtt ApiGatewayRole.Arn
                 requestTemplates:
                   application/json: |
