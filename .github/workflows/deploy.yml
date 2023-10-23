@@ -31,4 +31,5 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         working-directory: ./circuit-breaker
         run: |
+          sam build
           sam deploy --no-confirm-changeset --stack-name LesaLjubljanaServerless --region us-east-1 --resolve-s3 --capabilities CAPABILITY_IAM
